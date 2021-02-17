@@ -24,11 +24,9 @@ export const HomeBoardPage: React.FC = () => {
   const onToolbarAction = (action: ToolbarAction) => {
     if (action === "roll") {
       setIsRollMode(true)
-      console.log("beef");
     }
     if(action === "sort") {
         setIsSortActive(!isSortActive);
-        console.log("chicken", isSortActive)
     }
   }
   console.log()
