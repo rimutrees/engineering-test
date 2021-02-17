@@ -9,9 +9,12 @@ import { Person } from "shared/models/person"
 import { useApi } from "shared/hooks/use-api"
 import { StudentListTile } from "staff-app/components/student-list-tile/student-list-tile.component"
 import { ActiveRollOverlay, ActiveRollAction } from "staff-app/components/active-roll-overlay/active-roll-overlay.component"
+import { sortPeopleByFirstName } from '../../shared/helpers/sorting-functions'
+
 
 export const HomeBoardPage: React.FC = () => {
   const [isRollMode, setIsRollMode] = useState(false)
+  const [isSortActive, setIsSortActive] = useState(false)
   const [getStudents, data, loadState] = useApi<{ students: Person[] }>({ url: "get-homeboard-students" })
 
   useEffect(() => {
@@ -21,14 +24,21 @@ export const HomeBoardPage: React.FC = () => {
   const onToolbarAction = (action: ToolbarAction) => {
     if (action === "roll") {
       setIsRollMode(true)
+      console.log("beef");
+    }
+    if(action === "sort") {
+        setIsSortActive(!isSortActive);
+        console.log("chicken", isSortActive)
     }
   }
-
+  console.log()
   const onActiveRollAction = (action: ActiveRollAction) => {
     if (action === "exit") {
       setIsRollMode(false)
     }
   }
+
+  const students = isSortActive ? sortPeopleByFirstName(data?.students!) : data?.students;
 
   return (
     <>
@@ -41,9 +51,9 @@ export const HomeBoardPage: React.FC = () => {
           </CenteredContainer>
         )}
 
-        {loadState === "loaded" && data?.students && (
+        {loadState === "loaded" && students && (
           <>
-            {data.students.map((s) => (
+            {students.map((s) => (
               <StudentListTile key={s.id} isRollMode={isRollMode} student={s} />
             ))}
           </>
