@@ -10,11 +10,13 @@ import { useApi } from "shared/hooks/use-api"
 import { StudentListTile } from "staff-app/components/student-list-tile/student-list-tile.component"
 import { ActiveRollOverlay, ActiveRollAction } from "staff-app/components/active-roll-overlay/active-roll-overlay.component"
 import { sortPeopleByFirstName } from '../../shared/helpers/sorting-functions'
+import { filterPeopleByName } from '../../shared/helpers/filter-functions'
 
 
 export const HomeBoardPage: React.FC = () => {
   const [isRollMode, setIsRollMode] = useState(false)
   const [isSortActive, setIsSortActive] = useState(false)
+  const [searchValue, setSearchValue] = useState("")
   const [getStudents, data, loadState] = useApi<{ students: Person[] }>({ url: "get-homeboard-students" })
 
   useEffect(() => {
@@ -26,22 +28,30 @@ export const HomeBoardPage: React.FC = () => {
       setIsRollMode(true)
     }
     if(action === "sort") {
-        setIsSortActive(!isSortActive);
+      setIsSortActive(!isSortActive);
     }
   }
-  console.log()
+  
+  const onSearchInputChange = (val: string) => { 
+    setSearchValue(val)
+  }
+
   const onActiveRollAction = (action: ActiveRollAction) => {
     if (action === "exit") {
       setIsRollMode(false)
     }
   }
-
-  const students = isSortActive ? sortPeopleByFirstName(data?.students!) : data?.students;
-
+  let students = data?.students || []
+  students = isSortActive ? sortPeopleByFirstName(students) : students
+  students = searchValue ? filterPeopleByName(students, searchValue) : students
   return (
     <>
       <S.PageContainer>
-        <Toolbar onItemClick={onToolbarAction} />
+        <Toolbar 
+          onItemClick={onToolbarAction} 
+          onSearchInputChange={onSearchInputChange }
+          searchValue={searchValue}
+        />
 
         {loadState === "loading" && (
           <CenteredContainer>
@@ -70,14 +80,21 @@ export const HomeBoardPage: React.FC = () => {
 
 type ToolbarAction = "roll" | "sort"
 interface ToolbarProps {
-  onItemClick: (action: ToolbarAction, value?: string) => void
+  onItemClick: (action: ToolbarAction, value?: string) => void,
+  onSearchInputChange: (val: string) => void,
+  searchValue: string,
 }
 const Toolbar: React.FC<ToolbarProps> = (props) => {
-  const { onItemClick } = props
+  const { onItemClick, onSearchInputChange, searchValue } = props
   return (
     <S.ToolbarContainer>
       <div onClick={() => onItemClick("sort")}>First Name</div>
-      <div>Search</div>
+      <input type="text" 
+        onChange={(e) => onSearchInputChange(e.currentTarget.value)} 
+        placeholder="Search" 
+        onClick={() => onSearchInputChange("")}
+        value={searchValue}
+      />
       <S.Button onClick={() => onItemClick("roll")}>Start Roll</S.Button>
     </S.ToolbarContainer>
   )
